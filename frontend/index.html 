@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UAE Rental Prediction</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 700px; margin: auto; padding: 20px; }
+        h1 { text-align: center; }
+        label { display: block; margin-top: 15px; font-weight: bold; }
+        input, select, button { width: 100%; padding: 8px; margin-top: 5px; }
+        #result { margin-top: 20px; font-size: 1.2em; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1>UAE Rental Prediction API</h1>
+
+    <form id="rentalForm">
+        <label for="beds">Beds:</label>
+        <input type="number" id="beds" name="beds" required min="0">
+
+        <label for="baths">Baths:</label>
+        <input type="number" id="baths" name="baths" step="0.5" required min="0">
+
+        <label for="area">Area (sqft):</label>
+        <input type="number" id="area" name="area" required min="100">
+
+        <label for="city">City:</label>
+        <select id="city" name="city" required>
+            <option value="">Select City</option>
+            <option value="Dubai">Dubai</option>
+            <option value="Abu Dhabi">Abu Dhabi</option>
+            <option value="Sharjah">Sharjah</option>
+            <option value="Ajman">Ajman</option>
+            <option value="Ras Al Khaimah">Ras Al Khaimah</option>
+            <option value="Fujairah">Fujairah</option>
+            <option value="Al Ain">Al Ain</option>
+        </select>
+
+        <label for="type">Type:</label>
+        <select id="type" name="type" required>
+            <option value="">Select Type</option>
+            <option value="Apartment">Apartment</option>
+            <option value="Villa">Villa</option>
+            <option value="Townhouse">Townhouse</option>
+        </select>
+
+        <label for="frequency">Payment Frequency:</label>
+        <select id="frequency" name="frequency" required>
+            <option value="">Select Frequency</option>
+            <option value="Monthly">Monthly</option>
+            <option value="Yearly">Yearly</option>
+        </select>
+
+        <label for="furnishing">Furnishing:</label>
+        <select id="furnishing" name="furnishing" required>
+            <option value="">Select Furnishing</option>
+            <option value="Furnished">Furnished</option>
+            <option value="Unfurnished">Unfurnished</option>
+            <option value="Semi-Furnished">Semi-Furnished</option>
+        </select>
+
+        <label for="location">Location:</label>
+        <input type="text" id="location" name="location" placeholder="Enter Location" required>
+
+        <button type="submit">Predict Rent</button>
+    </form>
+
+    <div id="result"></div>
+
+    <script>
+        const form = document.getElementById("rentalForm");
+        const resultDiv = document.getElementById("result");
+
+        form.addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            const data = {
+                beds: parseInt(document.getElementById("beds").value),
+                baths: parseFloat(document.getElementById("baths").value),
+                area: parseInt(document.getElementById("area").value),
+                city: document.getElementById("city").value,
+                type: document.getElementById("type").value,
+                frequency: document.getElementById("frequency").value,
+                furnishing: document.getElementById("furnishing").value,
+                location: document.getElementById("location").value
+            };
+
+            try {
+                const response = await fetch("/predict", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+                resultDiv.textContent = `Predicted Rent: AED ${result.predicted_rent}`;
+            } catch (err) {
+                resultDiv.textContent = "Error predicting rent. Please try again.";
+                console.error(err);
+            }
+        });
+    </script>
+</body>
+</html>

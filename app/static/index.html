@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>UAE Rental Prediction</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 600px; margin: 50px auto; }
+        label { display: block; margin-top: 10px; }
+        input, select, button { width: 100%; padding: 8px; margin-top: 5px; }
+        button { margin-top: 20px; background-color: #4CAF50; color: white; border: none; cursor: pointer; }
+        button:hover { background-color: #45a049; }
+        #result { margin-top: 20px; font-weight: bold; font-size: 1.2em; }
+    </style>
+</head>
+<body>
+    <h1>UAE Rental Prediction</h1>
+
+    <label for="beds">Bedrooms:</label>
+    <input type="number" id="beds" min="1" value="2">
+
+    <label for="baths">Bathrooms:</label>
+    <input type="number" id="baths" min="1" value="2">
+
+    <label for="area">Area (sqft):</label>
+    <input type="number" id="area" min="100" value="1000">
+
+    <label for="city">City:</label>
+    <select id="city"></select>
+
+    <label for="type">Property Type:</label>
+    <select id="type"></select>
+
+    <label for="frequency">Rent Frequency:</label>
+    <select id="frequency"></select>
+
+    <label for="furnishing">Furnishing:</label>
+    <select id="furnishing"></select>
+
+    <label for="location">Location:</label>
+    <select id="location"></select>
+
+    <button id="predict-btn" onclick="predictRent()" disabled>Predict Rent</button>
+
+    <div id="result"></div>
+
+    <script>
+        async function populateDropdowns(selectedCity = null) {
+            let url = "/options";
+            if (selectedCity) url += `?city=${encodeURIComponent(selectedCity)}`;
+
+            const response = await fetch(url);
+            const options = await response.json();
+
+            function populateDropdown(id, items) {
+                const select = document.getElementById(id);
+                select.innerHTML = "";
+                items.forEach(item => {
+                    const option = document.createElement("option");
+                    option.value = item;
+                    option.text = item;
+                    select.add(option);
+                });
+            }
+
+            populateDropdown("city", options.City);
+            populateDropdown("type", options.Type);
+            populateDropdown("frequency", options.Frequency);
+            populateDropdown("furnishing", options.Furnishing);
+            populateDropdown("location", options.Location);
+
+            document.getElementById("predict-btn").disabled = false;
+        }
+
+        window.onload = async () => {
+            await populateDropdowns();
+
+            // Pre-select first city
+            const citySelect = document.getElementById("city");
+            if (citySelect.options.length > 0) {
+                citySelect.selectedIndex = 0;
+                populateDropdowns(citySelect.value);  // refresh dependent dropdowns
+            }
+
+            // Update dependent dropdowns when city changes
+            citySelect.addEventListener("change", (e) => {
+                populateDropdowns(e.target.value);
+            });
+        };
+
+        async function predictRent() {
+            const data = {
+                beds: parseInt(document.getElementById("beds").value),
+                baths: parseFloat(document.getElementById("baths").value),
+                area: parseInt(document.getElementById("area").value),
+                city: document.getElementById("city").value,
+                type: document.getElementById("type").value,
+                frequency: document.getElementById("frequency").value,
+                furnishing: document.getElementById("furnishing").value,
+                location: document.getElementById("location").value
+            };
+
+            const response = await fetch("/predict", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data)
+            });
+
+            const result = await response.json();
+            document.getElementById("result").innerText = 
+                `Predicted Rent: AED ${result.predicted_rent.toLocaleString()}`;
+        }
+    </script>
+</body>
+</html>
